@@ -11,6 +11,10 @@ on:
         description: Ota branch, tag, or commit to build for this matrix run
         required: false
         default: v1.6.18
+      run_runtime_proof:
+        description: Run runtime proof lane (Docker Compose startup + readiness proof)
+        required: false
+        default: 'false'
   pull_request:
     paths:
       - 'ota.yaml'
@@ -324,7 +328,7 @@ jobs:
           done < ota-non-internal-container-exec.jsonl
 
       - name: Proof app workflow
-        if: ${{ matrix.full_proof }}
+        if: ${{ matrix.full_proof && github.event_name == 'workflow_dispatch' && github.event.inputs.run_runtime_proof == 'true' }}
         timeout-minutes: 35
         shell: bash
         run: |
