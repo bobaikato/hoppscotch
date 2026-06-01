@@ -323,16 +323,16 @@ jobs:
             fi
           done < ota-non-internal-container-exec.jsonl
 
-      - name: Proof selfhost workflow
+      - name: Proof app workflow
         if: ${{ matrix.full_proof }}
         timeout-minutes: 35
         shell: bash
         run: |
           ota clean . || true
           set +e
-          ota proof runtime --workflow selfhost --ready-timeout 20m --json . > ota-proof-selfhost.json
+          ota proof runtime --workflow app --ready-timeout 12m --json . > ota-proof-app.json
           status=$?
-          cat ota-proof-selfhost.json
+          cat ota-proof-app.json
           if [ "$status" -eq 0 ]; then
             ota clean . || true
           fi
@@ -349,5 +349,5 @@ jobs:
             ota-execution-topology.json
             ota-up-verify-container-dry-run.json
             ota-up-verify-container-workflow-dry-run.json
-            ota-proof-selfhost.json
-            .ota/proof/selfhost/
+            ota-proof-app.json
+            .ota/proof/app/
