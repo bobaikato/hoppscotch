@@ -127,17 +127,25 @@ tasks:
     notes: |
       This maps directly to the root workspace install surface used by the repo CI.
     category: setup
-    run: pnpm install
+    prepare:
+      kind: dependency_hydration
+      medium: package_dependencies
+      source:
+        kind: node_package_manager
+        cwd: .
+        manager: pnpm
+        mode: install
+        frozen_lockfile: true
     execution:
       default_mode: native
       modes:
         native:
           context: host
-          run: pnpm install
         container:
           context: app
-          run: pnpm install
     effects:
+      writes:
+        - node_modules
       network: true
       network_kind: dependency_hydration
     requirements:
@@ -415,6 +423,7 @@ agent:
   writable_paths:
     - packages
     - package.json
+    - node_modules
   protected_paths:
     - .github/workflows
     - .env
