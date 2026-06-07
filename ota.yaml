@@ -33,7 +33,7 @@ toolchains:
     provider: corepack
     version: "^22.0.0"
     package_managers:
-      pnpm: "10.33.2"
+      pnpm: "10.33.4"
 surfaces:
   app:
     kind: http
