@@ -437,9 +437,9 @@ agent:
     - ota.yaml
   bootstrap:
     ota:
-      note: This pressure contract depends on unreleased Ota 1.6.20 surfaces (`tasks.<name>.prepare`). Use a local source build or 1.6.20+ when cut.
-      sh: cargo install --git https://github.com/bobaikato/ota --branch 1.6.20-implementation ota --locked --force
-      powershell: cargo install --git https://github.com/bobaikato/ota --branch 1.6.20-implementation ota --locked --force
+      note: This pressure contract depends on Ota `1.6.20` surfaces (`tasks.<name>.prepare`), so bootstrap stays pinned to the released `v1.6.20` line.
+      sh: curl -fsSL https://dist.ota.run/install.sh | OTA_VERSION=v1.6.20 sh
+      powershell: $env:OTA_VERSION='v1.6.20'; irm https://dist.ota.run/install.ps1 | iex
   notes: |
     Use `ota tasks --use .` to list runnable tasks and review the agent-safe surface before execution.
     Use `ota run setup:env .` before self-host workflows so `.env` is created from `.env.example`
