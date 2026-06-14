@@ -174,7 +174,7 @@ tasks:
     requirements:
       toolchains:
         - node
-    safe_for_agent: true
+    safe_for_agent: false
   typecheck:
     context: host
     description: Run the root workspace typecheck surface
@@ -196,7 +196,7 @@ tasks:
     requirements:
       toolchains:
         - node
-    safe_for_agent: true
+    safe_for_agent: false
   test:
     context: host
     description: Run the root workspace test surface
@@ -218,29 +218,19 @@ tasks:
     requirements:
       toolchains:
         - node
-    safe_for_agent: true
+    safe_for_agent: false
   verify:
-    context: host
     description: Run the full root workspace verification path
     notes: |
       This aggregates the lint, typecheck, and test surfaces so workflow execution proves the
       full contract claim instead of only the final test task.
     category: test
-    run: "true"
-    execution:
-      default_mode: native
-      modes:
-        native:
-          context: host
-          run: "true"
-        container:
-          context: app
-          run: "true"
-    depends_on:
-      - lint
-      - typecheck
-      - test
-    safe_for_agent: true
+    aggregate:
+      tasks:
+        - lint
+        - typecheck
+        - test
+    safe_for_agent: false
   dev:selfhost:
     context: docker-host
     description: Run the recommended self-host all-in-one Docker profile
@@ -251,7 +241,16 @@ tasks:
       Readiness is anchored to the primary app front door on port 3000; the other published ports
       remain exposed but are modeled as separate surfaces rather than blocking this workflow.
     category: dev
-    run: docker compose --profile default up
+    adapter_inputs:
+      compose:
+        profiles:
+          - default
+    launch:
+      kind: command
+      exe: docker
+      args:
+        - compose
+        - up
     effects:
       external_state:
         - docker
@@ -274,7 +273,16 @@ tasks:
       It starts the web application, bundle server, backend, database, and migration service.
       Readiness is anchored to the primary web application front door on port 3000.
     category: dev
-    run: docker compose --profile app up
+    adapter_inputs:
+      compose:
+        profiles:
+          - app
+    launch:
+      kind: command
+      exe: docker
+      args:
+        - compose
+        - up
     effects:
       external_state:
         - docker
@@ -296,7 +304,16 @@ tasks:
       `docker compose --profile backend up`.
       It starts the backend, database, and migration service without the web clients.
     category: dev
-    run: docker compose --profile backend up
+    adapter_inputs:
+      compose:
+        profiles:
+          - backend
+    launch:
+      kind: command
+      exe: docker
+      args:
+        - compose
+        - up
     effects:
       external_state:
         - docker
@@ -319,7 +336,16 @@ tasks:
       It starts the admin dashboard, backend, database, and migration service.
       Readiness is anchored to the admin dashboard front door on port 3100.
     category: dev
-    run: docker compose --profile admin up
+    adapter_inputs:
+      compose:
+        profiles:
+          - admin
+    launch:
+      kind: command
+      exe: docker
+      args:
+        - compose
+        - up
     effects:
       external_state:
         - docker
@@ -414,14 +440,9 @@ workflows:
 agent:
   posture: readiness_strict
   entrypoint: install
-  default_task: test
-  safe_tasks:
-    - lint
-    - typecheck
-    - test
-    - verify
-  verify_after_changes:
-    - verify
+  default_task: verify
+  safe_tasks: []
+  verify_after_changes: []
   writable_paths:
     - packages
     - package.json
@@ -437,9 +458,9 @@ agent:
     - ota.yaml
   bootstrap:
     ota:
-      note: This pressure contract depends on Ota `1.6.20` surfaces (`tasks.<name>.prepare`), so bootstrap stays pinned to the released `v1.6.20` line.
-      sh: curl -fsSL https://dist.ota.run/install.sh | OTA_VERSION=v1.6.20 sh
-      powershell: $env:OTA_VERSION='v1.6.20'; irm https://dist.ota.run/install.ps1 | iex
+      note: This pressure contract depends on released Ota task-preparation surfaces, so bootstrap stays pinned to the current released `v1.6.21` line.
+      sh: curl -fsSL https://dist.ota.run/install.sh | OTA_VERSION=v1.6.21 sh
+      powershell: $env:OTA_VERSION='v1.6.21'; irm https://dist.ota.run/install.ps1 | iex
   notes: |
     Use `ota tasks --use .` to list runnable tasks and review the agent-safe surface before execution.
     Use `ota run setup:env .` before self-host workflows so `.env` is created from `.env.example`
