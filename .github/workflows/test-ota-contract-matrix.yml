@@ -3,10 +3,10 @@ name: 'Test: Ota contract matrix'
 on:
   workflow_dispatch:
     inputs:
-      ota_version:
-        description: Released Ota version to install for this matrix run
+      ota_git_rev:
+        description: Exact unreleased Ota git revision to install for this matrix run
         required: false
-        default: v1.6.20
+        default: 08c270351c9870c82a39899161388bb250ad23c4
       run_runtime_proof:
         description: Run runtime proof lane (Docker Compose startup + readiness proof)
         required: false
@@ -29,7 +29,7 @@ permissions:
 
 env:
   OTA_NO_UPDATE_CHECK: '1'
-  OTA_VERSION: ${{ github.event.inputs.ota_version || 'v1.6.20' }}
+  OTA_GIT_REV: ${{ github.event.inputs.ota_git_rev || '08c270351c9870c82a39899161388bb250ad23c4' }}
 
 jobs:
   native:
@@ -75,15 +75,15 @@ jobs:
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          curl -fsSL https://dist.ota.run/install.sh | OTA_VERSION="${OTA_VERSION}" sh
+          curl -fsSL https://dist.ota.run/install.sh | OTA_GIT_REV="${OTA_GIT_REV}" sh -s -- --from-git
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Install ota (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $env:OTA_VERSION = "${env:OTA_VERSION}"
-          irm https://dist.ota.run/install.ps1 | iex
+          $env:OTA_GIT_REV = "${env:OTA_GIT_REV}"
+          & ([scriptblock]::Create((irm https://dist.ota.run/install.ps1))) -FromGit
           (Join-Path $env:LOCALAPPDATA "ota\\bin") | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Validate contract
